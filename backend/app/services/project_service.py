@@ -25,30 +25,33 @@ def create_project(
 
 def get_projects(
     db: Session,
-    owner_id: int
+    user_id: int,
+    is_admin: bool = False
 ) -> list[Project]:
+
+    if is_admin:
+        return db.query(Project).all()
 
     return (
         db.query(Project)
-        .filter(Project.owner_id == owner_id)
+        .filter(Project.owner_id == user_id)
         .all()
     )
 
 
 def get_project(
-    db: Session,
-    project_id: int,
-    owner_id: int
+        db: Session,
+        project_id: int,
+        user_id: int,
+        is_admin: bool = False
 ) -> Project | None:
 
-    return (
-        db.query(Project)
-        .filter(
-            Project.id == project_id,
-            Project.owner_id == owner_id
-        )
-        .first()
-    )
+    query = db.query(Project).filter(Project.id == project_id)
+
+    if not is_admin:
+        query = query.filter(Project.owner_id == user_id)
+
+    return query.first()
 
 
 def delete_project(

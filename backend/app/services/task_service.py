@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.models.project import Project
 from app.models.task import Task
 from app.schemas.task import TaskCreate
 
@@ -8,7 +9,6 @@ def create_task(
     db: Session,
     task_data: TaskCreate
 ) -> Task:
-
     task = Task(
         title=task_data.title,
         description=task_data.description,
@@ -30,7 +30,6 @@ def get_tasks(
     db: Session,
     project_id: int
 ) -> list[Task]:
-
     return (
         db.query(Task)
         .filter(Task.project_id == project_id)
@@ -42,7 +41,6 @@ def get_task(
     db: Session,
     task_id: int
 ) -> Task | None:
-
     return (
         db.query(Task)
         .filter(Task.id == task_id)
@@ -55,7 +53,6 @@ def update_task(
     task: Task,
     task_data: TaskCreate
 ) -> Task:
-
     task.title = task_data.title
     task.description = task_data.description
     task.status = task_data.status
@@ -74,7 +71,6 @@ def delete_task(
     db: Session,
     task: Task
 ) -> None:
-
     db.delete(task)
     db.commit()
 
@@ -82,7 +78,7 @@ def delete_task(
 def get_filtered_tasks(
     db: Session,
     project_id: int,
-    status: str | None = None,
+    task_status: str | None = None,
     priority: str | None = None,
     skip: int = 0,
     limit: int = 10
@@ -93,8 +89,8 @@ def get_filtered_tasks(
         .filter(Task.project_id == project_id)
     )
 
-    if status:
-        query = query.filter(Task.status == status)
+    if task_status:
+        query = query.filter(Task.status == task_status)
 
     if priority:
         query = query.filter(Task.priority == priority)
@@ -107,3 +103,19 @@ def get_filtered_tasks(
     )
 
 
+def is_project_owner(
+    db: Session,
+    project_id: int,
+    user_id: int
+) -> bool:
+
+    project = (
+        db.query(Project)
+        .filter(
+            Project.id == project_id,
+            Project.owner_id == user_id
+        )
+        .first()
+    )
+
+    return project is not None

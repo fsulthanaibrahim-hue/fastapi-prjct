@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
-from app.models.project import Project
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse
 from app.services.project_service import (
@@ -11,7 +10,6 @@ from app.services.project_service import (
     get_project,
     get_projects,
 )
-
 
 router = APIRouter(
     prefix="/projects",
@@ -46,7 +44,8 @@ def list_projects(
 ):
     return get_projects(
         db=db,
-        owner_id=current_user.id
+        user_id=current_user.id,
+        is_admin=current_user.role == "admin"
     )
 
 
@@ -62,7 +61,8 @@ def get_single_project(
     project = get_project(
         db=db,
         project_id=project_id,
-        owner_id=current_user.id
+        user_id=current_user.id,
+        is_admin=current_user.role == "admin"
     )
 
     if project is None:
@@ -86,7 +86,8 @@ def remove_project(
     project = get_project(
         db=db,
         project_id=project_id,
-        owner_id=current_user.id
+        user_id=current_user.id,
+        is_admin=current_user.role == "admin"
     )
 
     if project is None:
